@@ -11,6 +11,7 @@ delog = { version = "0.1.5", optional = true }
 
 [dev-dependencies]
 env_logger = "0.10.0"
+quickcheck = "1.0.3"
 test-log = "0.2.11"
 
 trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "51477a4c5d22b7fbfe9d5fed137701764b2c86ec", features = ["virt"] }

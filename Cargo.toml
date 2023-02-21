@@ -8,6 +8,7 @@ edition = "2021"
 trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "51477a4c5d22b7fbfe9d5fed137701764b2c86ec" }
 log = "0.4"
 delog = { version = "0.1.5", optional = true }
+serde = { version = "1.0.152", default-features = false }
 
 [dev-dependencies]
 env_logger = "0.10.0"

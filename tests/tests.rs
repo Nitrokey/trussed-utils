@@ -11,6 +11,7 @@ use trussed::{
 use trussed_utils::EncryptionUtil;
 
 const DATA: &[u8] = b"Some random data";
+const AD: Option<&[u8]> = Some(b"Some random associated data");
 
 #[test_log::test]
 fn encryption_bad_key() {
@@ -18,7 +19,7 @@ fn encryption_bad_key() {
         let key = syscall!(client.generate_chacha8poly1305_key(Location::Volatile)).key;
         syscall!(client.delete(key));
         assert_eq!(
-            client.store_encrypted(DATA, PathBuf::from("path"), Location::Volatile, key),
+            client.store_encrypted(DATA, AD, PathBuf::from("path"), Location::Volatile, key),
             Err(Error::NoSuchKey)
         );
     });
@@ -29,11 +30,11 @@ fn decryption_bad_key() {
     with_ram_client("utils test", |mut client| {
         let key = syscall!(client.generate_chacha8poly1305_key(Location::Volatile)).key;
         client
-            .store_encrypted(DATA, PathBuf::from("path"), Location::Volatile, key)
+            .store_encrypted(DATA, AD, PathBuf::from("path"), Location::Volatile, key)
             .unwrap();
         syscall!(client.delete(key));
         assert_eq!(
-            client.load_encrypted(PathBuf::from("path"), Location::Volatile, key),
+            client.load_encrypted(PathBuf::from("path"), AD, Location::Volatile, key),
             Err(Error::NoSuchKey)
         );
     });
@@ -44,11 +45,11 @@ fn encryption_decryption() {
     with_ram_client("utils test", |mut client| {
         let key = syscall!(client.generate_chacha8poly1305_key(Location::Volatile)).key;
         client
-            .store_encrypted(DATA, PathBuf::from("path"), Location::Volatile, key)
+            .store_encrypted(DATA, AD, PathBuf::from("path"), Location::Volatile, key)
             .unwrap();
         assert_eq!(
             client
-                .load_encrypted(PathBuf::from("path"), Location::Volatile, key)
+                .load_encrypted(PathBuf::from("path"), AD, Location::Volatile, key)
                 .unwrap(),
             DATA
         );
@@ -78,17 +79,23 @@ fn arbitrary_data_inner(
         match good_key_store {
             false => {
                 assert_eq!(
-                    client.store_encrypted(data, PathBuf::from("path"), location_store, bad_key),
+                    client.store_encrypted(
+                        data,
+                        AD,
+                        PathBuf::from("path"),
+                        location_store,
+                        bad_key
+                    ),
                     Err(Error::NoSuchKey)
                 );
             }
             true => client
-                .store_encrypted(data, PathBuf::from("path"), location_store, good_key)
+                .store_encrypted(data, AD, PathBuf::from("path"), location_store, good_key)
                 .unwrap(),
         }
         match good_key_load {
             false => assert_eq!(
-                client.load_encrypted(PathBuf::from("path"), location_load, bad_key),
+                client.load_encrypted(PathBuf::from("path"), AD, location_load, bad_key),
                 if location_load == location_store && good_key_store {
                     Err(Error::NoSuchKey)
                 } else {
@@ -96,7 +103,7 @@ fn arbitrary_data_inner(
                 }
             ),
             true => {
-                let res = client.load_encrypted(PathBuf::from("path"), location_load, good_key);
+                let res = client.load_encrypted(PathBuf::from("path"), AD, location_load, good_key);
                 if location_load == location_store {
                     if good_key_store {
                         assert_eq!(res.unwrap(), data);

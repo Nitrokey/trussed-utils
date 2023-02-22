@@ -2,28 +2,26 @@
 name = "trussed-utils"
 version = "0.1.0"
 edition = "2021"
+authors = ["Nitrokey GmbH <info@nitrokey.com>"]
+repository = "https://github.com/nitrokey/trussed-utils"
+license = "Apache-2.0 OR MIT"
+description = "Universal AEAD Encrypted Container, using CBOR and Chacha8Poly1305 from Trussed"
+
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "51477a4c5d22b7fbfe9d5fed137701764b2c86ec" }
-log = "0.4"
-delog = { version = "0.1.5", optional = true }
-serde = { version = "1.0.152", default-features = false }
+trussed = { version = "0.1" }
+heapless = "0.7"
+heapless-bytes = "0.3"
+serde = { version = "1", default-features = false }
+delog = "0.1.6"
 
 [dev-dependencies]
 env_logger = "0.10.0"
 quickcheck = "1.0.3"
 test-log = "0.2.11"
+trussed = { version = "0.1", features = ["virt"] }
 
-trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "51477a4c5d22b7fbfe9d5fed137701764b2c86ec", features = ["virt"] }
-
-[features]
-
-# used for delog
-log-all = []
-log-none = []
-log-info = []
-log-debug = []
-log-warn = []
-log-error = []
-
+[patch.crates-io]
+trussed = { git = "https://github.com/trussed-dev/trussed.git", rev = "67b4ee9c6c530658e2a358a082cbf8720e896bc1" }

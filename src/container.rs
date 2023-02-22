@@ -47,7 +47,7 @@ use trussed::{cbor_deserialize, cbor_serialize, try_syscall};
 /// # use trussed::types::{KeyId, Message};
 /// # use trussed_utils::EncryptedDataContainer;
 /// fn encrypt_unit<O: Serialize, T: Client + Chacha8Poly1305>(trussed: &mut T, obj: &O, ek: KeyId) -> Message {
-///    let data = EncryptedDataContainer::from_obj(trussed, obj, None, ek).unwrap();
+///    let data = EncryptedDataContainer::from_struct(trussed, obj, None, ek).unwrap();
 ///    let data_serialized: Message = data.try_into().unwrap();
 ///    data_serialized
 /// }
@@ -94,7 +94,7 @@ impl TryFrom<EncryptedDataContainer> for Message {
 
 impl EncryptedDataContainer {
     /// Decrypt given Bytes and return original object instance
-    pub fn decrypt_from_bytes<T, O>(
+    pub fn decrypt_bytes_to_struct<T, O>(
         trussed: &mut T,
         ser_encrypted: Message,
         encryption_key: KeyId,
@@ -106,11 +106,11 @@ impl EncryptedDataContainer {
         let deserialized_container: EncryptedDataContainer =
             cbor_deserialize(&ser_encrypted).map_err(|_| Error::CborError)?;
 
-        deserialized_container.decrypt(trussed, None, encryption_key)
+        deserialized_container.decrypt_to_struct(trussed, None, encryption_key)
     }
 
     /// Create Encrypted Data Container from the given object
-    pub fn from_obj<T, O>(
+    pub fn from_struct<T, O>(
         trussed: &mut T,
         obj: &O,
         associated_data: Option<&[u8]>,
@@ -127,11 +127,11 @@ impl EncryptedDataContainer {
         })
         .map_err(|_| Error::CborError)?;
         debug!("Plaintext size: {}", message.len());
-        Self::encrypt_message(trussed, &message, associated_data, encryption_key)
+        Self::encrypt(trussed, &message, associated_data, encryption_key)
     }
 
     /// Encrypt given Bytes object, and return an Encrypted Data Container
-    pub fn encrypt_message<T>(
+    pub fn encrypt<T>(
         trussed: &mut T,
         message: &[u8],
         associated_data: Option<&[u8]>,
@@ -169,7 +169,7 @@ impl EncryptedDataContainer {
     }
 
     /// Decrypt the content of this Encrypted Data Instance, and deserialize to the original object
-    pub fn decrypt<T, O>(
+    pub fn decrypt_to_struct<T, O>(
         &self,
         trussed: &mut T,
         associated_data: Option<&[u8]>,
@@ -179,12 +179,12 @@ impl EncryptedDataContainer {
         T: trussed::Client + trussed::client::Chacha8Poly1305,
         O: DeserializeOwned,
     {
-        let message = self.decrypt_to_serialized(trussed, associated_data, encryption_key)?;
+        let message = self.decrypt(trussed, associated_data, encryption_key)?;
         cbor_deserialize(&message).map_err(|_| Error::CborError)
     }
 
     /// Decrypt the content of this Encrypted Data Instance, and return the original serialized object
-    pub fn decrypt_to_serialized<T>(
+    pub fn decrypt<T>(
         &self,
         trussed: &mut T,
         associated_data: Option<&[u8]>,

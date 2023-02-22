@@ -17,8 +17,7 @@ pub trait EncryptionUtil: Client + client::Chacha8Poly1305 + Sized {
         location: Location,
         encryption_key: KeyId,
     ) -> Result<(), Error> {
-        let encrypted_container =
-            EncryptedDataContainer::encrypt_message(self, data, ad, encryption_key)?;
+        let encrypted_container = EncryptedDataContainer::encrypt(self, data, ad, encryption_key)?;
         let encrypted_data: Message =
             trussed::cbor_serialize_bytes(&encrypted_container).map_err(|_| {
                 error!("Failed to deserialize encrypted container");
@@ -40,7 +39,7 @@ pub trait EncryptionUtil: Client + client::Chacha8Poly1305 + Sized {
                     error!("Failed to deserialize encrypted container");
                     Error::CborError
                 })?;
-        data.decrypt_to_serialized(self, ad, encryption_key)
+        data.decrypt(self, ad, encryption_key)
     }
 
     fn store_encrypted_struct<T: Serialize>(

@@ -29,8 +29,8 @@ pub trait EncryptionUtil: Client + client::Chacha8Poly1305 + Sized {
     }
     fn load_encrypted(
         &mut self,
-        path: PathBuf,
         ad: Option<&[u8]>,
+        path: PathBuf,
         location: Location,
         encryption_key: KeyId,
     ) -> Result<Message, Error> {
@@ -59,12 +59,12 @@ pub trait EncryptionUtil: Client + client::Chacha8Poly1305 + Sized {
     }
     fn load_encrypted_struct<T: DeserializeOwned>(
         &mut self,
-        path: PathBuf,
         ad: Option<&[u8]>,
+        path: PathBuf,
         location: Location,
         encryption_key: KeyId,
     ) -> Result<T, Error> {
-        let data = self.load_encrypted(path, ad, location, encryption_key)?;
+        let data = self.load_encrypted(ad, path, location, encryption_key)?;
         trussed::cbor_deserialize(&data).map_err(|_err| {
             error!("Failed to deserialize data: {:?}", _err);
             Error::CborError

@@ -34,7 +34,7 @@ fn decryption_bad_key() {
             .unwrap();
         syscall!(client.delete(key));
         assert_eq!(
-            client.load_encrypted(PathBuf::from("path"), AD, Location::Volatile, key),
+            client.load_encrypted(AD, PathBuf::from("path"), Location::Volatile, key),
             Err(Error::NoSuchKey)
         );
     });
@@ -49,7 +49,7 @@ fn encryption_decryption() {
             .unwrap();
         assert_eq!(
             client
-                .load_encrypted(PathBuf::from("path"), AD, Location::Volatile, key)
+                .load_encrypted(AD, PathBuf::from("path"), Location::Volatile, key)
                 .unwrap(),
             DATA
         );
@@ -100,7 +100,7 @@ fn arbitrary_data_inner(
         };
         match good_key_load {
             false => assert_eq!(
-                client.load_encrypted(PathBuf::from("path"), ad, location_load, bad_key),
+                client.load_encrypted(ad, PathBuf::from("path"), location_load, bad_key),
                 if location_load == location_store && good_key_store {
                     Err(Error::NoSuchKey)
                 } else {
@@ -108,7 +108,7 @@ fn arbitrary_data_inner(
                 }
             ),
             true => {
-                let res = client.load_encrypted(PathBuf::from("path"), ad, location_load, good_key);
+                let res = client.load_encrypted(ad, PathBuf::from("path"), location_load, good_key);
                 if location_load == location_store {
                     if good_key_store && good_ad_load {
                         assert_eq!(res.unwrap(), data);
